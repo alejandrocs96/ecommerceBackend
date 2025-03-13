@@ -10,7 +10,7 @@ class Users(Base):
     last_name = Column(String(60), nullable=False)
     phone = Column(String(30))
     email = Column(String(30), unique=True, nullable=False)
-    password = Column(String(60), nullable=False)
+    password = Column(String(360), nullable=False)
     permission = Column(Integer, nullable=False)
 
     # Relación corregida

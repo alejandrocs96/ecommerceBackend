@@ -4,7 +4,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from schemas.users import userCreate, userLogin, passwordChange
 from utils.utils import get_password_hash, verify_password
-from utils.jwt_handler import create_jwt
+from utils.jwt_handler import create_jwt, verificar_token_jwt
+
+
 
 def login_user(userLogin: userLogin ,db: Session):
     db_user = db.query(Users).filter(Users.email == userLogin.email).first()
@@ -13,6 +15,14 @@ def login_user(userLogin: userLogin ,db: Session):
     # Generar token JWT
     token = create_jwt({"user_id": db_user.id, "email": db_user.email, "name": db_user.name, "index": db_user.permission}) 
     return token
+
+def session_user(session):
+    session = verificar_token_jwt(session)
+    if not session:
+        raise HTTPException(status_code=400,detail= "Sesión no válida.")
+    
+    return session
+
 
 def create_user(user: userCreate, db: Session):
     # Verificar si el correo ya existe
@@ -27,7 +37,7 @@ def create_user(user: userCreate, db: Session):
         email=user.email,
         phone= user.phone, 
         password=get_password_hash(user.password),
-        permission= user.permission # Por defecto, permiso básico
+        permission= user.permission 
     )
     db.add(db_user)
     db.commit()

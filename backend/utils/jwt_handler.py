@@ -3,10 +3,12 @@ from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
 # Clave secreta para firmar el JWT
-SECRET_KEY = "M@gaB1ll@resT1end@Onl1ne"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv('SECRET_KEY_TOKEN')
+ALGORITHM = os.getenv('ALGORITHM')
 ACCESS_TOKEN_EXPIRE_HOURS = 36
 
 # Esquema de autenticación para leer el token JWT
@@ -37,16 +39,20 @@ def verificar_token_jwt(token: str = Depends(oauth2_scheme)):
         # Decodificar el token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         usuario = payload.get("email")
+        id = payload.get("user_id")
+        name = payload.get("name")
+        index = payload.get("index")
         if usuario is None:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token no válido",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token no válido",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token no válido",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return usuario
+    return {"email": usuario, "id": id, "name": name, "index": index}
